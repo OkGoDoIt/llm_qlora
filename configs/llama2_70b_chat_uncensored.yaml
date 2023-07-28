@@ -1,0 +1,34 @@
+model_name: llama2_70b_chat_uncensored
+base_model: TheBloke/Llama-2-70B-fp16
+model_family: llama  # if unspecified will use AutoModelForCausalLM/AutoTokenizer
+model_context_window: 4096  # if unspecified will use tokenizer.model_max_length
+data:
+  type: vicuna
+  dataset: ehartford/wizard_vicuna_70k_unfiltered  # HuggingFace hub
+lora:
+  r: 64
+  lora_alpha: 16
+  target_modules:  # modules for which to train lora adapters
+  - q_proj
+  - k_proj
+  - v_proj
+  lora_dropout: 0.05
+  bias: lora_only
+  task_type: CAUSAL_LM
+trainer:
+  save_strategy: steps
+  save_steps: 100
+  save_total_limit: 4
+  evaluation_strategy: steps
+  eval_steps: 100
+  batch_size: 1
+  gradient_accumulation_steps: 8
+  warmup_steps: 100
+  num_train_epochs: 1
+  learning_rate: 0.0002  # 2e-4
+  logging_steps: 5
+  bf16: True
+  bits: 16
+  report_to: "wandb"
+trainer_output_dir: trainer_outputs/
+model_output_dir: models/  # model saved in {model_output_dir}/{model_name}

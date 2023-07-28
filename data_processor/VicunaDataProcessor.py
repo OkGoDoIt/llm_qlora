@@ -16,6 +16,10 @@ class VicunaDataProcessor(DataProcessor):
             context_window = self.tokenizer.model_max_length
 
         data = load_dataset(self.config["data"]["dataset"])
+        
+        data = data["train"].train_test_split(test_size=0.01)
+
+        
         data = data.map(lambda data_point: self.tokenizer(
             self._generate_prompt(
                 data_point["conversations"],
@@ -32,15 +36,18 @@ class VicunaDataProcessor(DataProcessor):
             value = turn["value"]
 
             if entity == "human":
-                convo_text += "### HUMAN:\n"
+                convo_text += "user: "
                 end_token = ""
             elif entity == "gpt":
-                convo_text += "### RESPONSE:\n"
+                convo_text += "assistant: "
                 end_token = eos_token  # LLM should stop its output after the response
+            elif entity == "system":
+                convo_text += "system: "
+                end_token = ""
             else:
                 print(f"WARNING: uknown entity {entity}")
                 convo_text += f"### {entity.upper()}:\n"
                 end_token = ""
 
-            convo_text += value + end_token + "\n\n"
+            convo_text += value + end_token + "\n"
         return convo_text
